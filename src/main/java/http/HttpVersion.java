@@ -11,7 +11,7 @@ public class HttpVersion {
     VERSION_3_0, // 3.0
   }
 
-  private HttpVersionType versionType;
+  private final HttpVersionType versionType;
 
   public HttpVersion(final String version) throws BadHttpRequestException {
     switch (version) {
