@@ -42,6 +42,9 @@ public class RequestHandlerThread extends Thread {
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
+        } catch (BadHttpRequestException e) {
+            log.error(e.getMessage());
+            // ...
         }
     }
 
