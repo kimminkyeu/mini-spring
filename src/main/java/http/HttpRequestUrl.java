@@ -1,7 +1,7 @@
 package http;
 
 public class HttpRequestUrl {
-  private String innerUrl;
+  private final String innerUrl;
 
   public HttpRequestUrl(final String url) {
     this.innerUrl = url;
