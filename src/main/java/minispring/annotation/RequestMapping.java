@@ -1,6 +1,5 @@
 package minispring.annotation;
 
-import minispring.http.base.HttpContentType;
 import minispring.http.base.HttpMethod;
 
 import java.lang.annotation.*;
