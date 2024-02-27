@@ -1,4 +1,4 @@
-package util;
+package minispring.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,4 +17,6 @@ public class IOUtils {
         br.read(body, 0, contentLength);
         return String.copyValueOf(body);
     }
+
+    public static final String CRLF = "\r\n";
 }

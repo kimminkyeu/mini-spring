@@ -1,4 +1,4 @@
-package util;
+package minispring.util;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -49,11 +49,15 @@ public class HttpRequestUtils {
         return new Pair(tokens[0], tokens[1]);
     }
 
+    public static Pair parseHeader(String header) {
+        return getKeyValue(header, ": ");
+    }
+
     public static class Pair {
         String key;
         String value;
 
-        Pair(String key, String value) {
+        public Pair(String key, String value) {
             this.key = key.trim();
             this.value = value.trim();
         }

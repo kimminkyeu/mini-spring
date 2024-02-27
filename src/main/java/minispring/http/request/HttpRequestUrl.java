@@ -1,9 +1,13 @@
-package http;
+package minispring.http.request;
+
+import org.jetbrains.annotations.NotNull;
+import minispring.util.Assert;
 
 public class HttpRequestUrl {
   private final String innerUrl;
 
-  public HttpRequestUrl(final String url) {
+  public HttpRequestUrl(final @NotNull String url) {
+    Assert.notNull(url);
     this.innerUrl = url;
   }
 
