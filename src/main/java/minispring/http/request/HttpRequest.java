@@ -1,9 +1,9 @@
 package minispring.http.request;
 
 public final class HttpRequest {
-  private HttpRequestEntity entity;
-   private HttpRequestHeader header;
-   private HttpRequestBody body;
+  private final HttpRequestEntity entity;
+  private final HttpRequestHeader header;
+  private final HttpRequestBody body;
 
   HttpRequest(HttpRequestEntity entity, HttpRequestHeader header, HttpRequestBody body) {
     this.entity = entity;

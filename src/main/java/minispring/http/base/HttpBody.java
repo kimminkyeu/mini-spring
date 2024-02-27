@@ -3,8 +3,6 @@ package minispring.http.base;
 import org.jetbrains.annotations.NotNull;
 import minispring.util.Assert;
 
-import java.nio.charset.StandardCharsets;
-
 // TODO: string 기반으로 하는게 맞을까? bytestream이 더 낫지 않을까?
 public abstract class HttpBody {
   private @NotNull String raw;
@@ -12,11 +10,6 @@ public abstract class HttpBody {
   public HttpBody(@NotNull String content) {
     Assert.notNull(content);
     this.raw = content;
-  }
-
-  public void setRaw(@NotNull String raw) {
-    Assert.notNull(raw);
-    this.raw = raw;
   }
 
   public boolean isEmpty() {

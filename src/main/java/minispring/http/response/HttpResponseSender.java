@@ -1,6 +1,5 @@
 package minispring.http.response;
 
-import com.google.common.net.HttpHeaders;
 import minispring.http.base.HttpContentType;
 import org.jetbrains.annotations.NotNull;
 import minispring.util.Assert;
@@ -8,7 +7,6 @@ import minispring.util.Assert;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static minispring.util.IOUtils.CRLF;
@@ -36,7 +34,7 @@ public class HttpResponseSender {
       res.setContentLength(body.length);
     }
 
-    String headerRaw = res.getEntity().toString() + CRLF + res.getHeader().toString() + CRLF;
+    String headerRaw = res.getEntity() + CRLF + res.getHeader() + CRLF;
     out.writeBytes(headerRaw);
     if (body != null) {
       out.write(body, 0, body.length);
