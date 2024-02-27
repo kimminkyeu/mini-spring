@@ -2,16 +2,24 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import http.HttpRequest;
-import http.HttpRequestReader;
-import exception.BadHttpRequestException;
+import minispring.DispatcherManagerProvider;
+import minispring.exception.HttpClient4xxException;
+import minispring.exception.HttpServer5xxException;
+import minispring.http.response.HttpResponseBody;
+import minispring.http.base.HttpStatus;
+import minispring.http.base.HttpVersion;
+import minispring.http.request.HttpRequest;
+import minispring.http.request.HttpRequestReader;
+import minispring.http.response.HttpResponse;
+import minispring.http.response.HttpResponseSender;
+import minispring.util.Assert;
 
-// 소스를 들어가보지 않아도 쓰레드임을 알 수 있도록 판단.
 public class RequestHandlerThread extends Thread {
+
     private static final Logger log = LoggerFactory.getLogger(RequestHandlerThread.class);
     private final Socket connection;
 
@@ -19,52 +27,57 @@ public class RequestHandlerThread extends Thread {
         this.connection = connectionSocket;
     }
 
-    // Ref: https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html
+    // TODO: 왜 InputStrem, OutputStream만 try-resource 안에 넣는 건지, Closeable에 대해 알아보기
+    // Thread Ref: https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html
     @Override
     public void run() {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
 
-        // NOTE: 왜 InputStrem, OutputStream만 try절 안에 넣는 걸까?
-        //  추축 1. 특정 객체는 close를 자동으로 못한다...? (fileReader도 여기서 해야 했어음)
         try ( InputStream socketIn = connection.getInputStream();
-              OutputStream socketOut = connection.getOutputStream(); ) {
-            // InputStream 과 InputStreamReader 두 Class가 나눠진 이유를 좀 알아보자. // 둘다 쌩짜 read를 지원한다.
-            InputStreamReader inputStreamReader = new InputStreamReader(socketIn);
-            // BufferedReader = readline 을 위한 버퍼링을 가진 클래스 (libft의 getline)
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            // Http 파싱해서 데이터화. (NOTE: 정말 bufferdReader를 생성자에 넣는게 필요한가?)
-            HttpRequest httpRequest = new HttpRequestReader(bufferedReader).deserialize();
-            // create response stream (fd)
-            DataOutputStream dos = new DataOutputStream(socketOut);
-            // NOTE: single Connection이 종료되는 시점.  (Socket fd 닫히는 시점인가?)
-            byte[] body = Files.readAllBytes(new File("./webapp" + httpRequest.getEntity().getUrl().toString()).toPath());
-            response200Header(dos, body.length);
-            responseBody(dos, body);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        } catch (BadHttpRequestException e) {
-            log.error(e.getMessage());
-            // ...
-        }
-    }
+              OutputStream socketOut = connection.getOutputStream() ) {
+            startHttp11Stream(socketIn, socketOut);
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void responseBody(DataOutputStream dos, byte[] body) {
+    private void startHttp11Stream(@NotNull InputStream in, @NotNull OutputStream out) throws IOException {
+        Assert.notNull(in);
+        Assert.notNull(out);
+
+        HttpResponse httpResponse = new HttpResponse(HttpVersion.HTTP_11);
+
         try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
+            HttpRequestReader requestReader = new HttpRequestReader(in);
+            HttpRequest httpRequest = requestReader.deserializeAll();
+            DispatcherManagerProvider.getManager().dispatch(httpRequest, httpResponse);
+
+        } catch (HttpClient4xxException e) {
             log.error(e.getMessage());
+            HttpStatus status = e.getHttpStatus();
+            switch (status) {
+                case BAD_REQUEST:
+                    // TODO: ...
+                    break;
+                default:
+                    // TODO: ...
+            }
+            httpResponse.setHttpStatus(e.getHttpStatus());
+            httpResponse.setBody(new HttpResponseBody(status.getMessage()));
+
+        } catch (HttpServer5xxException e) {
+            httpResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            httpResponse.setBody(new HttpResponseBody("Woops! Server has been crashed!"));
+            e.printStackTrace();
+
+        } catch (Exception e) { // TODO: 다른 runtime exeption은?
+            log.error("명시적으로 처리하지 못한 Exception이 발생했습니다. 통보 요망!!");
+            e.printStackTrace();
+
+        } finally {
+            HttpResponseSender responseSender = new HttpResponseSender(out, httpResponse);
+            responseSender.sendAll();
         }
     }
 }
