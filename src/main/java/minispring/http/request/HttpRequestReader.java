@@ -1,5 +1,9 @@
 package minispring.http.request;
 
+import com.google.common.net.HttpHeaders;
+import minispring.http.base.HttpHeader;
+import minispring.http.base.HttpStatus;
+import minispring.util.Assert;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -9,51 +13,54 @@ import minispring.util.HttpRequestUtils;
 
 import static minispring.util.IOUtils.CRLF;
 
-// NOTE: 그런데... Reader Close는 누가 책임지나?
-public final class HttpRequestReader extends BufferedReader {
-  public HttpRequestReader(InputStream in) {
-    super(new InputStreamReader(in));
+public final class HttpRequestReader {
+  private final BufferedReader bufferedReader;
+
+  public HttpRequestReader(@NotNull InputStream in) {
+    Assert.notNull(in);
+
+    this.bufferedReader = new BufferedReader(new InputStreamReader(in));
   }
 
-  @Override
-  public int read(char @NotNull [] cbuf, int off, int len) throws IOException {
-    return super.read(cbuf, off, len);
-  }
-
-  @Override
-  public void close() throws IOException {
-    super.close();
-  }
-
-  public HttpRequest deserializeAll() throws IOException, HttpClient4xxException {
+  public HttpRequest read() throws IOException, HttpClient4xxException {
     HttpRequestEntity entity = this.readEntity();
     HttpRequestHeader header = this.readHeader();
-    HttpRequestBody body = this.readBody();
+
+    String contentLength = header.get(HttpHeaders.CONTENT_LENGTH);
+    HttpRequestBody body = null;
+    if (contentLength != null) {
+       body = this.readBody(Integer.parseInt(contentLength));
+    }
     return new HttpRequest(entity, header, body);
   }
 
-  @NotNull // entity가 null이거나 method, url, version 이 없는 경우 BadHttpRequestException 발생.
-  public HttpRequestEntity readEntity() throws IOException, HttpClient4xxException {
-    String line = super.readLine();
+  @NotNull
+  private HttpRequestEntity readEntity() throws IOException, HttpClient4xxException {
+    String line = bufferedReader.readLine();
     return new HttpRequestEntity(line);
   }
 
-  @NotNull // header가 null이거나 필수 헤더가 없는 경우 HttpRequestException 발생.
-  public HttpRequestHeader readHeader() throws IOException, HttpClient4xxException {
+  @NotNull
+  private HttpRequestHeader readHeader() throws IOException, HttpClient4xxException {
     String line = null;
     HttpRequestHeader header = new HttpRequestHeader();
-    while ( ((line = super.readLine()) != null) &&
-            (line.equals(CRLF)) ) {
+    while ( ((line = bufferedReader.readLine()) != null) &&
+            (line.isEmpty() == false) ) {
       HttpRequestUtils.Pair pair = HttpRequestUtils.getKeyValue(line, ": ");
-      if (pair != null) {
-        header.put(pair);
-        // TODO: 필수 헤더 검증 해야 합니다. 지금은 HttpRequestException이 발생안해요.
+      if (pair == null) {
+        throw new HttpClient4xxException(HttpStatus.BAD_REQUEST, "Header 양식이 잘못되었습니다!");
       }
+      header.put(pair);
     }
     return header;
   }
 
-  public HttpRequestBody readBody() throws IOException, HttpClient4xxException {
-    return new HttpRequestBody("Hello World!");
+  private HttpRequestBody readBody(int contentLength) throws IOException {
+    char[] buf = new char[contentLength];
+    int rdSize = 0;
+    while (rdSize < contentLength) {
+      rdSize += bufferedReader.read(buf, rdSize, contentLength - rdSize);
+    }
+    return new HttpRequestBody(new String(buf));
   }
 }

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import controller.FileController;
 import controller.UserController;
-import minispring.BeanManagerProvider;
+import minispring.BeanManager;
 
 public class WebServer {
 
@@ -17,8 +17,8 @@ public class WebServer {
 
     public static void main(String args[]) throws Exception {
         // NOTE: (1) init controller instance
-        BeanManagerProvider.getManager().registerBean("UserController", new UserController());
-        BeanManagerProvider.getManager().registerBean("FileController", new FileController());
+        BeanManager.getInstance().register(new UserController());
+        BeanManager.getInstance().register(new FileController());
 
         // NOTE: (2) create connection
         int port = 0;

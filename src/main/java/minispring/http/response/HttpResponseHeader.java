@@ -31,7 +31,7 @@ public class HttpResponseHeader extends HttpHeader {
     Assert.notNull(lengthString);
 
     int length = Integer.parseInt(lengthString);
-    Assert.isTrue(length > 0, "김민규", () -> "Content-length는 반드시 0보다 큰 값이 설정되어야 합니다");
+    Assert.isTrue(length > 0, "김민규", "Content-length는 반드시 0보다 큰 값이 설정되어야 합니다");
 
     return length;
   }

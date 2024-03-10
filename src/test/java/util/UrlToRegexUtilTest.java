@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
-import minispring.RequestMappingAnnotationToRegexUtil;
+import minispring.util.RequestMappingAnnotationToRegexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +19,8 @@ public class UrlToRegexUtilTest {
   @Test
   public void regexMatchTest() {
     try {
+      // user/create\?(userId=?[\w-;,.\?%@&=]+)&(password=?[\w-;,.\?%@&=]+)&(name=?[\w-;,.\?%@&=]+)&(email=?[\w-;,.\?%@&=]+)
+      // OR 로 처리해서, 순서 상관없이 뽑아낼 수 있도록.
       String regex = RequestMappingAnnotationToRegexUtil.convertReqeustMappingToRegexXXX(UserController.class.getMethod(
               "createUser", // method name
               String.class, // param1

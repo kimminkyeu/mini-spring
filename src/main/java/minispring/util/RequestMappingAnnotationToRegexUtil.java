@@ -1,4 +1,4 @@
-package minispring;
+package minispring.util;
 
 import minispring.annotation.PathVariable;
 import minispring.annotation.RequestMapping;

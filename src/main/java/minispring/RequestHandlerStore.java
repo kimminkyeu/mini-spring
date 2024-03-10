@@ -7,13 +7,16 @@ import minispring.http.request.HttpRequestUrl;
 import minispring.util.Assert;
 import org.jetbrains.annotations.NotNull;
 
-public class RequestHandlerListProxy {
-  private final List<RequestHandler> handlerList_GET = Collections.synchronizedList(new ArrayList<>());
-  private final List<RequestHandler> handlerList_PUT = Collections.synchronizedList(new ArrayList<>());
-  private final List<RequestHandler> handlerList_POST = Collections.synchronizedList(new ArrayList<>());
-  private final List<RequestHandler> handlerList_DELETE = Collections.synchronizedList(new ArrayList<>());
+public class RequestHandlerStore {
+  private final List<RequestHandler> handlerList_GET = new ArrayList<>();
+  private final List<RequestHandler> handlerList_PUT = new ArrayList<>();
+  private final List<RequestHandler> handlerList_POST = new ArrayList<>();
+  private final List<RequestHandler> handlerList_DELETE = new ArrayList<>();
+  // NOTE: Map을 쓰지 않은 이유 : Method key의 개수가 정해져 있기 때문. (한정된 Key 범위)
+  //       Map을 쓰면, GET PUT POST같은 key값을 따로 검증해야 한다.
   // TODO: add more here...
 
+  // put 은 동시 접근을 원칙적으로 막아야 합니다.
   public void put(@NotNull HttpMethod httpMethod, @NotNull RequestHandler requestHandler) throws IllegalArgumentException {
     Assert.notNull(httpMethod);
     Assert.notNull(requestHandler);
@@ -57,6 +60,6 @@ public class RequestHandlerListProxy {
       default:
         return Optional.empty();
     }
-    return list.stream().filter(handler -> handler.matcher(url).matches()).findFirst();
+    return list.stream().filter(handler -> handler.isMatching(url)).findFirst();
   }
 }

@@ -38,7 +38,7 @@ public enum HttpStatus {
     this.message = message;
   }
 
-  public String getMessage() {
+  public String getStatusMessage() {
     return this.message;
   }
 

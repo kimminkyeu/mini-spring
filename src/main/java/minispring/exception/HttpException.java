@@ -7,12 +7,12 @@ public abstract class HttpException extends Exception {
   private final HttpStatus httpStatus;
 
   protected HttpException(HttpStatus httpStatus) {
-    super(httpStatus.getMessage());
+    super(httpStatus.getStatusMessage());
     this.httpStatus = httpStatus;
   }
 
   protected HttpException(HttpStatus httpStatus, String additionalHintForServer) {
-    super(httpStatus.getMessage() + " : " + additionalHintForServer);
+    super(httpStatus.getStatusMessage() + " : " + additionalHintForServer);
     this.httpStatus = httpStatus;
   }
 

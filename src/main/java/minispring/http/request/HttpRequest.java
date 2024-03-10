@@ -1,11 +1,18 @@
 package minispring.http.request;
 
-public final class HttpRequest {
-  private final HttpRequestEntity entity;
-  private final HttpRequestHeader header;
-  private final HttpRequestBody body;
+import minispring.util.Assert;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  HttpRequest(HttpRequestEntity entity, HttpRequestHeader header, HttpRequestBody body) {
+public final class HttpRequest {
+  private @NotNull final HttpRequestEntity entity;
+  private @NotNull final HttpRequestHeader header;
+  private @Nullable final HttpRequestBody body;
+
+  HttpRequest(@NotNull HttpRequestEntity entity, @NotNull HttpRequestHeader header, @Nullable HttpRequestBody body) {
+    Assert.notNull(entity);
+    Assert.notNull(header);
+
     this.entity = entity;
     this.header = header;
     this.body = body;

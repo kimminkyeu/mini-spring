@@ -30,7 +30,6 @@ public class HttpResponseSender {
     if (res.getBody() != null) {
       String raw = res.getBody().toString();
       body = raw.getBytes(StandardCharsets.UTF_8);
-      res.getHeader().setContentType(HttpContentType.TEXT_HTML);
       res.setContentLength(body.length);
     }
 
