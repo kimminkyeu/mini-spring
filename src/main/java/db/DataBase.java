@@ -7,7 +7,7 @@ import com.google.common.collect.Maps;
 
 import model.User;
 
-public class DataBase {
+public class DataBase { // TODO: LOCk ?
     private static Map<String, User> users = Maps.newHashMap();
 
     public static void addUser(User user) {
